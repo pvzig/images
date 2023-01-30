@@ -1,4 +1,4 @@
-name: Smoke test "rust" build
+name: Smoke test "swift" build
 
 on: 
   workflow_dispatch:
