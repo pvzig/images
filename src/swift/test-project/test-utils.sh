@@ -43,6 +43,7 @@ check-version-ge() {
         return 1
     fi
 }
+
 checkMultiple() {
     PASSED=0
     LABEL="$1"
@@ -104,8 +105,7 @@ checkExtension() {
     fi
 }
 
-checkCommon()
-{
+checkCommon() {
     PACKAGE_LIST="apt-utils \
         git \
         openssh-client \
