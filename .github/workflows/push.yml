@@ -11,8 +11,8 @@ jobs:
     if: ${{ github.event.base_ref == 'refs/heads/main' }}
     strategy:
       matrix:
-        page: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
-        page-total: [53]
+        page: [1]
+        page-total: [1]
       fail-fast: false
     runs-on: devcontainer-image-builder-ubuntu
     steps:
@@ -33,27 +33,16 @@ jobs:
       id: get_tag_name  
       run: echo "::set-output name=tag::$(echo "${{ github.ref }}" | grep -oP 'refs/tags/\K(.+)')"
 
-    - name: Azure CLI login
-      id: az_login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZ_ACR_CREDS }}
-
     - name: Build and push
       id: build_and_push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REGISTRY: ${{ secrets.REGISTRY }}
-        REGISTRY_BASE_PATH: ${{ secrets.REGISTRY_BASE_PATH }}
-        STUB_REGISTRY: ${{ secrets.STUB_REGISTRY }}
-        STUB_REGISTRY_BASE_PATH: ${{ secrets.STUB_REGISTRY_BASE_PATH }}
-        SECONDARY_REGISTRY_BASE_PATH: ${{ secrets.SECONDARY_REGISTRY_BASE_PATH }}
+        GITHUB_USER: ${{ env.GITHUB_USER }}
       run: |
         set -e
 
-        # ACR login
-        ACR_REGISTRY_NAME=$(echo "$REGISTRY" | grep -oP '(.+)(?=\.azurecr\.io)')
-        az acr login --name $ACR_REGISTRY_NAME
+        # docker login 
+        echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin
 
         # Build and push images
         yarn install
@@ -62,11 +51,7 @@ jobs:
                           --pageTotal ${{ matrix.page-total }} \
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
-                          --registry "$REGISTRY" \
-                          --registry-path "$REGISTRY_BASE_PATH" \
-                          --stub-registry "$STUB_REGISTRY" \
-                          --stub-registry-path "$STUB_REGISTRY_BASE_PATH" \
-                          --secondary-registry-path "$SECONDARY_REGISTRY_BASE_PATH"
+                          --registry "ghcr.io"
 
   image-info:
     name: Trigger info extraction
