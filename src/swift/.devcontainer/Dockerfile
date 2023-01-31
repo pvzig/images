@@ -1,5 +1,5 @@
 # [Choice] Ubuntu OS version (use focal or jammy on local arm64/Apple Silicon): bionic, focal, jammy
-ARG VARIANT="jammy"
+ARG VARIANT="5.7-jammy"
 FROM swift:${VARIANT}
 
 # [Optional] Uncomment this section to install additional OS packages.
