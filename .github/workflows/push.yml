@@ -51,12 +51,16 @@ jobs:
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
                           --registry "ghcr.io" \
-                          --registry-path ${{ github.user }} 
+                          --registry-path "pvzig/swift-devcontainer-image" \
+                          --stub-registry "ghcr.io" \
+                          --stub-registry-path "pvzig/swift-devcontainer-image" \
+                          --secondary-registry-path "pvzig/swift-devcontainer-image"
+
 
   image-info:
     name: Trigger info extraction
     needs: [build-and-push]
-    uses: devcontainers/images/.github/workflows/version-history.yml@main
+    uses: pvzig/images/.github/workflows/version-history.yml@main
     with:
       release: "${{ github.ref }}"
       cg: "false"
