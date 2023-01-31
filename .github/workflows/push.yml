@@ -37,12 +37,11 @@ jobs:
       id: build_and_push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_USER: ${{ env.GITHUB_USER }}
       run: |
         set -e
 
         # docker login 
-        echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin
+        echo $GITHUB_TOKEN | docker login ghcr.io -u ${{ github.user }} --password-stdin
 
         # Build and push images
         yarn install
@@ -51,7 +50,8 @@ jobs:
                           --pageTotal ${{ matrix.page-total }} \
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
-                          --registry "ghcr.io"
+                          --registry "ghcr.io" \
+                          --registry-path ${{ github.user }} 
 
   image-info:
     name: Trigger info extraction
