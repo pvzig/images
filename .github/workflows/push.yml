@@ -14,7 +14,7 @@ jobs:
         page: [1]
         page-total: [1]
       fail-fast: false
-    runs-on: devcontainer-image-builder-ubuntu
+    runs-on: ubuntu-latest
     steps:
     - name: Free more space
       id: free_space 
@@ -51,10 +51,7 @@ jobs:
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
                           --registry "ghcr.io" \
-                          --registry-path "pvzig/swift-devcontainer-image" \
-                          --stub-registry "ghcr.io" \
-                          --stub-registry-path "pvzig/swift-devcontainer-image" \
-                          --secondary-registry-path "pvzig/swift-devcontainer-image"
+                          --registry-path "pvzig/swift-devcontainer-image"
 
 
   image-info:
