@@ -54,7 +54,7 @@ jobs:
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
                           --registry "ghcr.io" \
-                          --registry-path "pvzig/swift-devcontainer-image"
+                          --registry-path "pvzig/images"
 
 
   image-info:

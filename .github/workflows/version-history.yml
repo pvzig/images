@@ -72,7 +72,7 @@ jobs:
                           --prune \
                           --release "$RELEASE_STRING" \
                           --registry "ghcr.io" \
-                          --registry-path "pvzig/swift-devcontainer-image" \
+                          --registry-path "pvzig/images" \
                           --output-path "$GITHUB_WORKSPACE" \
                           "$OVERWRITE_STRING" \
                           "$CG_STRING"
