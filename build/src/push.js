@@ -92,22 +92,13 @@ async function pushImage(definitionId, variant, repo, release, updateLatest,
     if (prepOnly) {
         console.log(`(*) Skipping build and push to registry.`);
     } else {
-        if (prepResult.shouldFlattenBaseImage) {
-            console.log(`(*) Flattening base image...`);
-            await flattenBaseImage(prepResult.baseImageTag, prepResult.flattenedBaseImageTag, pushImages);
-        }
-
         // Build image
         console.log(`(*) Building image...`);
         // Determine tags to use
         const imageNamesWithVersionTags = configUtils.getTagList(definitionId, release, updateLatest, registry, registryPath, variant);
         const imageName = imageNamesWithVersionTags[0].split(':')[0];
 
-        // Dual publish image to devcontainers and vscode/devcontainers
-        const secondaryImageNamesWithVersionTags = configUtils.getTagList(definitionId, release, updateLatest, registry, secondaryRegistryPath, variant);
-
         console.log(`(*) Tags:${imageNamesWithVersionTags.reduce((prev, current) => prev += `\n     ${current}`, '')}`);
-        console.log(`(*) Secondary Tags:${secondaryImageNamesWithVersionTags.reduce((prev, current) => prev += `\n     ${current}`, '')}`);
 
         const buildSettings = configUtils.getBuildSettings(definitionId);
 
@@ -134,114 +125,44 @@ async function pushImage(definitionId, variant, repo, release, updateLatest,
             console.log(`(*) Push disabled: Only building local architecture (${localArchitecture}).`);
         }
 
-        if (replaceImage || !await isDefinitionVersionAlreadyPublished(definitionId, release, registry, registryPath, variant)) {
-
-            let skipPersistingCustomizationsFromFeatures = false;
-            let platformParams = "";
-            // Universal image does not need to be multi-arch
-            // ubuntu:focal image supports multiarch but Universal does not. Hence, the build fails similar to https://github.com/docker/buildx/issues/235
-            if (definitionId !== "universal") {
-                platformParams = "--platform " + (pushImages ? architectures.reduce((prev, current) => prev + ',' + current, '').substring(1) : localArchitecture)
-            } else {
-                skipPersistingCustomizationsFromFeatures = true;
-            }
-
-            const context = devContainerJson.build ? devContainerJson.build.context || '.' : devContainerJson.context || '.';
-            const workingDir = path.resolve(dotDevContainerPath, context);
-            let imageNameParams = imageNamesWithVersionTags.reduce((prev, current) => prev.concat(['--image-name', current]), []);
-
-            const secondaryImageNameParams = secondaryImageNamesWithVersionTags.reduce((prev, current) => prev.concat(['--image-name', current]), []);
-            imageNameParams = imageNameParams.concat(secondaryImageNameParams);
-
-            const spawnOpts = { stdio: 'inherit', cwd: workingDir, shell: true };
-            await asyncUtils.spawn('devcontainer', [
-                'build',
-                '--workspace-folder', definitionPath,
-                '--log-level ', 'info',
-                ...imageNameParams,
-                '--no-cache', 'true',
-                platformParams,
-                pushImages ? '--push' : '',
-                '--skip-persisting-customizations-from-features', skipPersistingCustomizationsFromFeatures,
-            ], spawnOpts);
-
-            if (!pushImages) {
-                console.log(`(*) Skipping push to registry.`);
-            }
-
-            console.log("(*) Docker images", imageName);
-            await asyncUtils.spawn('docker', [`images`], spawnOpts);
-
+        let skipPersistingCustomizationsFromFeatures = false;
+        let platformParams = "";
+        // Universal image does not need to be multi-arch
+        // ubuntu:focal image supports multiarch but Universal does not. Hence, the build fails similar to https://github.com/docker/buildx/issues/235
+        if (definitionId !== "universal") {
+            platformParams = "--platform " + (pushImages ? architectures.reduce((prev, current) => prev + ',' + current, '').substring(1) : localArchitecture)
         } else {
-            console.log(`(*) Version already published. Skipping.`);
+            skipPersistingCustomizationsFromFeatures = true;
         }
+
+        const context = devContainerJson.build ? devContainerJson.build.context || '.' : devContainerJson.context || '.';
+        const workingDir = path.resolve(dotDevContainerPath, context);
+        let imageNameParams = imageNamesWithVersionTags.reduce((prev, current) => prev.concat(['--image-name', current]), []);
+
+        const spawnOpts = { stdio: 'inherit', cwd: workingDir, shell: true };
+        await asyncUtils.spawn('devcontainer', [
+            'build',
+            '--workspace-folder', definitionPath,
+            '--log-level ', 'info',
+            ...imageNameParams,
+            '--no-cache', 'true',
+            platformParams,
+            pushImages ? '--push' : '',
+            '--skip-persisting-customizations-from-features', skipPersistingCustomizationsFromFeatures,
+        ], spawnOpts);
+
+        if (!pushImages) {
+            console.log(`(*) Skipping push to registry.`);
+        }
+
+        console.log("(*) Docker images", imageName);
+        await asyncUtils.spawn('docker', [`images`], spawnOpts);
     }
 
     await prep.createStub(
         dotDevContainerPath, definitionId, repo, release, stubRegistry, stubRegistryPath);
 
     console.log('(*) Done!\n');
-}
-
-async function flattenBaseImage(baseImageTag, flattenedBaseImageTag, pushImages) {
-    const flattenedImageCaptureGroups = /([^\/]+)\/(.+):(.+)/.exec(flattenedBaseImageTag);
-    if (await isImageAlreadyPublished(flattenedImageCaptureGroups[1], flattenedImageCaptureGroups[2], flattenedImageCaptureGroups[3])) {
-        console.log('(*) Flattened base image already published.')
-        return;
-    }
-
-    // Flatten
-    const processOpts = { stdio: 'inherit', shell: true };
-    console.log('(*) Preparing base image...');
-    await asyncUtils.spawn('docker', ['run', '-d', '--name', 'devcontainers-build-flatten', baseImageTag, 'bash'], processOpts);
-    const containerInspectOutput = await asyncUtils.spawn('docker', ['inspect', 'devcontainers-build-flatten'], { shell: true, stdio: 'pipe' });
-    console.log('(*) Flattening (this could take a while)...');
-    const config = JSON.parse(containerInspectOutput)[0].Config;
-    const envString = config.Env.reduce((prev, current) => prev + ' ' + current, '');
-    const importArgs = `-c 'ENV ${envString}' -c 'ENTRYPOINT ${JSON.stringify(config.Entrypoint)}' -c 'CMD ${JSON.stringify(config.Cmd)}'`;
-    await asyncUtils.exec(`docker export devcontainers-build-flatten | docker import ${importArgs} - ${flattenedBaseImageTag}`, processOpts);
-    await asyncUtils.spawn('docker', ['container', 'rm', '-f', 'devcontainers-build-flatten'], processOpts);
-
-    // Push if enabled
-    if (pushImages) {
-        console.log('(*) Pushing...');
-        await asyncUtils.spawn('docker', ['push', flattenedBaseImageTag], processOpts);
-    } else {
-        console.log('(*) Skipping push.');
-    }
-}
-
-async function isDefinitionVersionAlreadyPublished(definitionId, release, registry, registryPath, variant) {
-    // See if image already exists
-    const tagsToCheck = configUtils.getTagList(definitionId, release, false, registry, registryPath, variant);
-    const tagParts = tagsToCheck[0].split(':');
-    const registryName = registry.replace(/\..*/, '');
-    return await isImageAlreadyPublished(registryName, tagParts[0].replace(/[^\/]+\//, ''), tagParts[1]);
-}
-
-async function isImageAlreadyPublished(registryName, repositoryName, tagName) {
-    registryName = registryName.replace(/\.azurecr\.io.*/, '');
-    // Check if repository exists
-    const repositoriesOutput = await asyncUtils.spawn('az', ['acr', 'repository', 'list', '--name', registryName], { shell: true, stdio: 'pipe' });
-    const repositories = JSON.parse(repositoriesOutput);
-    if (repositories.indexOf(repositoryName) < 0) {
-        console.log('(*) Repository does not exist. Image version has not been published yet.')
-        return false;
-    }
-
-    // Assuming repository exists, check if tag exists
-    const tagListOutput = await asyncUtils.spawn('az', ['acr', 'repository', 'show-tags',
-        '--name', registryName,
-        '--repository', repositoryName,
-        '--query', `"[?@=='${tagName}']"`
-    ], { shell: true, stdio: 'pipe' });
-    const tagList = JSON.parse(tagListOutput);
-    if (tagList.length > 0) {
-        console.log('(*) Image version has already been published.')
-        return true;
-    }
-    console.log('(*) Image version has not been published yet.')
-    return false;
 }
 
 async function createOrUseBuilder() {
