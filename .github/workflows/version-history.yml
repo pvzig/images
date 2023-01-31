@@ -58,6 +58,8 @@ jobs:
       id: Get_image_info
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REGISTRY: "ghcr.io"
+        REGISTRY_BASE_PATH: "pvzig/images"
       run: |
         set -e
 
@@ -71,8 +73,8 @@ jobs:
                           --markdown \
                           --prune \
                           --release "$RELEASE_STRING" \
-                          --registry "ghcr.io" \
-                          --registry-path "pvzig/images" \
+                          --registry "$REGISTRY" \
+                          --registry-path "$REGISTRY_BASE_PATH" \
                           --output-path "$GITHUB_WORKSPACE" \
                           "$OVERWRITE_STRING" \
                           "$CG_STRING"

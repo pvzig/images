@@ -44,6 +44,8 @@ jobs:
       id: build_and_push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REGISTRY: "ghcr.io"
+        REGISTRY_BASE_PATH: "pvzig/images"
       run: |
         set -e
         # Build and push images
@@ -53,8 +55,8 @@ jobs:
                           --pageTotal ${{ matrix.page-total }} \
                           --release ${{ steps.get_tag_name.outputs.tag }} \
                           --github-repo ${{ github.repository }} \
-                          --registry "ghcr.io" \
-                          --registry-path "pvzig/images"
+                          --registry "$REGISTRY" \
+                          --registry-path "$REGISTRY_BASE_PATH"
 
 
   image-info:
