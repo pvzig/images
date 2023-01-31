@@ -29,11 +29,11 @@ jobs:
       id: checkout
       uses: actions/checkout@v1
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@latest
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
       with:
         registry: gchr.io
-        username: ${{ github.user }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Get tag name
