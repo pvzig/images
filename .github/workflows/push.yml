@@ -29,6 +29,13 @@ jobs:
       id: checkout
       uses: actions/checkout@v1
 
+    - name: Log in to the Container registry
+      uses: docker/login-action@latest
+      with:
+        registry: gchr.io
+        username: ${{ github.user }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Get tag name
       id: get_tag_name  
       run: echo "::set-output name=tag::$(echo "${{ github.ref }}" | grep -oP 'refs/tags/\K(.+)')"
@@ -39,10 +46,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -e
-
-        # docker login 
-        echo $GITHUB_TOKEN | docker login ghcr.io -u ${{ github.user }} --password-stdin
-
         # Build and push images
         yarn install
         npm install -g @devcontainers/cli
