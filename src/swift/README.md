@@ -2,37 +2,30 @@
 
 ## Summary
 
-Develop Swift based applications. Includes everything you need to get up and running.
+Develop Swift applications.
 
 | Metadata | Value |  
 |----------|-------|
-| *Contributors* | [0xTim](https://github.com/0xTim), [adam-fowler](https://github.com/adam-fowler), [cloudnull](https://github.com/cloudnull), [pvzig](https://github.com/pvzig) |
 | *Categories* | Languages |
-| *Definition type* | Dockerfile |
-| *Supported architecture(s)* | x86-64, arm64 |
+| *Image type* | Dockerfile |
+| *Published image* | ghcr.io/pvzig/images/swift |
+| *Available image variants* | 5.7-jammy, 5.7-focal, 5.7-bionic, 5.7-centos7, 5.7-amazonlinux2, 5.6-focal, 5.6-bionic, 5.6-centos7, 5.6-amazonlinux2 |
+| *Supported architecture(s)* | x86-64, arm64/aarch64 for some distros |
 | *Works in Codespaces* | Yes |
 | *Container host OS support* | Linux, macOS, Windows |
 | *Container OS* | Debian, centOS, Amazon Linux |
 | *Languages, platforms* | Swift |
-
-See **[history](history)** for information on the contents of published images.
+| *Contributors* | [0xTim](https://github.com/0xTim), [adam-fowler](https://github.com/adam-fowler), [cloudnull](https://github.com/cloudnull), [pvzig](https://github.com/pvzig) |
 
 ## Using this image
 
 You can directly reference pre-built versions of `Dockerfile` by using the `image` property in `.devcontainer/devcontainer.json` or updating the `FROM` statement in your own  `Dockerfile` to one of the following. An example `Dockerfile` is included in this repository.
 
-- `mcr.microsoft.com/pvzig/go` (latest)
-- `mcr.microsoft.com/devcontainers/go:1` (or `1-bullseye`, `1-buster` to pin to an OS version)
-- `mcr.microsoft.com/devcontainers/go:1.18` (or `1.18-bullseye`, `1.18-buster` to pin to an OS version)
-- `mcr.microsoft.com/devcontainers/go:1.19` (or `1.19-bullseye`, `1.19-buster` to pin to an OS version)
+- `ghcr.io/pvzig/images/swift` (latest)
+- `ghcr.io/pvzig/images/swift:5.7` (or `5.7-jammy`, `5.7-amazonlinux2` to pin to an OS version)
+- `ghcr.io/pvzig/images/swift:5.6` (or `5.6-focal`, `5.6-centos7` to pin to an OS version)
 
 Refer to [this guide](https://containers.dev/guide/dockerfile) for more details.
-
-You can decide how often you want updates by referencing a [semantic version](https://semver.org/) of each image. For example:
-
-- `mcr.microsoft.com/devcontainers/go:0-1.19` (or `0-1.19-bullseye`, `0-1.19-buster`)
-- `mcr.microsoft.com/devcontainers/go:0.207-1.19` (or `0.207-1.19-bullseye`, `0.207-1.19-buster`)
-- `mcr.microsoft.com/devcontainers/go:0.207.1-1.19` (or `0.207.1-1.19-bullseye`, `0.207.1-1.19-buster`)
 
 #### Installing Node.js
 
