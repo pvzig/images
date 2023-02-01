@@ -54,7 +54,8 @@
         "variantTags": {
             "5.7-jammy": [
                 "swift:jammy",
-                "swift:latest"
+                "swift:latest",
+                "swift:5.7"
             ],
             "5.7-focal": [
                 "swift:focal"
@@ -67,6 +68,9 @@
             ],
             "5.7-amazonlinux2": [
                 "swift:amazonlinux2"
+            ],
+            "5.6-focal": [
+                "swift:5.6"
             ]
         }
     },
