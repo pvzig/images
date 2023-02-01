@@ -29,7 +29,7 @@ Refer to [this guide](https://containers.dev/guide/dockerfile) for more details.
 
 #### Installing Node.js
 
-Given JavaScript front-end web client code written for use in conjunction with a Go back-end often requires the use of Node.js-based utilities to build, you can use a [Node feature](https://github.com/devcontainers/features/tree/main/src/node) to install any version of Node by adding the following to `devcontainer.json`:
+Given JavaScript front-end web client code written for use in conjunction with a Swift back-end often requires the use of Node.js-based utilities to build, you can use a [Node feature](https://github.com/devcontainers/features/tree/main/src/node) to install any version of Node by adding the following to `devcontainer.json`:
 
 ```json
 {
